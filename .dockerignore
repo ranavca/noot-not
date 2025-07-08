@@ -1,0 +1,26 @@
+# ============================================
+# DOCKER GITIGNORE
+# ============================================
+
+# Docker override files
+docker-compose.override.yml
+docker-compose.local.yml
+docker-compose.dev.yml
+
+# Docker volumes and data
+volumes/
+data/
+
+# Docker environment files
+.env.docker
+.env.compose
+
+# SSL certificates in Docker contexts
+ssl/
+certs/
+
+# Docker logs
+docker-logs/
+
+# Docker build context files
+.dockerignore.local

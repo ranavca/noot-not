@@ -1,0 +1,109 @@
+version: '3.8'
+
+services:
+  # PHP API Service
+  api:
+    build: ./noot-not-api
+    container_name: noot-not-api
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=noot_not
+      - DB_USER=noot_user
+      - DB_PASSWORD=noot_password
+      - IMAGE_API_URL=https://image-api.nootnot.rocks
+      - CORS_ORIGIN=https://nootnot.rocks
+    volumes:
+      - ./noot-not-api/public/images:/var/www/public/images
+      - api_logs:/var/log/apache2
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - noot-not-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # React Frontend Service
+  frontend:
+    build: ./noot-not-front
+    container_name: noot-not-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=https://api.nootnot.rocks/api
+    depends_on:
+      - api
+    networks:
+      - noot-not-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # MariaDB Database
+  db:
+    image: mariadb:10.6
+    container_name: noot-not-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: noot_not
+      MYSQL_USER: noot_user
+      MYSQL_PASSWORD: noot_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./noot-not-api/migrations:/docker-entrypoint-initdb.d
+      - db_logs:/var/log/mysql
+    networks:
+      - noot-not-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Nginx Reverse Proxy (for production)
+  nginx:
+    image: nginx:alpine
+    container_name: noot-not-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - noot-not-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+  api_logs:
+  db_logs:
+  nginx_logs:
+
+networks:
+  noot-not-network:
+    driver: bridge

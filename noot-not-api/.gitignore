@@ -1,0 +1,63 @@
+# ============================================
+# PHP API GITIGNORE
+# ============================================
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# Composer
+/vendor/
+composer.phar
+composer.lock
+
+# Logs
+*.log
+logs/
+storage/logs/
+
+# Cache
+cache/
+storage/cache/
+bootstrap/cache/
+
+# Sessions
+storage/framework/sessions/
+storage/framework/views/
+storage/framework/cache/
+
+# Generated files
+public/images/
+public/uploads/
+storage/app/public/
+storage/framework/
+
+# PHPUnit
+.phpunit.result.cache
+phpunit.xml
+!phpunit.xml.dist
+coverage/
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Database
+*.sqlite
+*.db
+
+# Docker
+.dockerignore.local

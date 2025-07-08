@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  image-api:
+    build: .
+    container_name: noot-not-image-api
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - HOST=0.0.0.0
+      - DEBUG=${DEBUG:-False}
+      - PHP_API_BASE_URL=${PHP_API_BASE_URL:-https://api.nootnot.rocks}
+      - ALLOWED_ORIGINS=https://api.nootnot.rocks,https://nootnot.rocks
+    volumes:
+      - ./assets/images:/app/assets/images
+      - ./assets/fonts:/app/assets/fonts
+      - ./assets/backgrounds:/app/assets/backgrounds
+      - image_logs:/app/logs
+    networks:
+      - image-api-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Nginx reverse proxy for image API (optional, for SSL termination)
+  nginx:
+    image: nginx:alpine
+    container_name: noot-not-image-api-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - image-api
+    networks:
+      - image-api-network
+    profiles:
+      - production
+
+volumes:
+  image_logs:
+  nginx_logs:
+
+networks:
+  image-api-network:
+    driver: bridge
