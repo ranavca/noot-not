@@ -3,7 +3,7 @@ import type { AxiosInstance, AxiosError } from "axios";
 
 // API Configuration
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api";
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8001/api";
 
 // Types for API responses
 export interface ApiConfession {

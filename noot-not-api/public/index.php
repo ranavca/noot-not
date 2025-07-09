@@ -6,6 +6,7 @@ use Slim\Factory\AppFactory;
 use Dotenv\Dotenv;
 use App\Middleware\CorsMiddleware;
 use App\Middleware\JsonBodyParserMiddleware;
+use App\Middleware\JwtAuthMiddleware;
 use App\Database\Connection;
 
 // Load environment variables
@@ -29,6 +30,11 @@ $app->add(new CorsMiddleware());
 // Add JSON body parser middleware
 $app->add(new JsonBodyParserMiddleware());
 
+// Handle preflight OPTIONS requests first
+$app->options('/{routes:.+}', function ($request, $response) {
+    return $response;
+});
+
 // Routes
 $app->group('/api', function ($group) {
     $group->post('/confessions', '\App\Controllers\ConfessionController:create');
@@ -38,9 +44,31 @@ $app->group('/api', function ($group) {
     $group->post('/confessions/{id}/update-images', '\App\Controllers\ConfessionController:updateImages');
 });
 
-// Handle preflight OPTIONS requests
-$app->options('/{routes:.+}', function ($request, $response) {
-    return $response;
+// Admin routes (protected by JWT)
+$app->group('/api/admin', function ($group) {
+    // Authentication
+    $group->post('/login', '\App\Controllers\AdminController:login');
+    
+    // Dashboard and stats (protected routes)
+    $group->group('', function ($subGroup) {
+        $subGroup->get('/stats', '\App\Controllers\AdminController:getStats');
+        
+        // Confession management
+        $subGroup->get('/confessions', '\App\Controllers\AdminController:getAllConfessions');
+        $subGroup->post('/confessions', '\App\Controllers\AdminController:createConfession');
+        $subGroup->put('/confessions/{id}/status', '\App\Controllers\AdminController:updateConfessionStatus');
+        $subGroup->delete('/confessions/{id}', '\App\Controllers\AdminController:deleteConfession');
+        $subGroup->post('/confessions/{id}/regenerate-images', '\App\Controllers\AdminController:regenerateImages');
+        
+        // Report management
+        $subGroup->get('/reports', '\App\Controllers\AdminController:getReports');
+        $subGroup->put('/reports/{id}/resolve', '\App\Controllers\AdminController:resolveReport');
+        
+        // User management
+        $subGroup->get('/users', '\App\Controllers\AdminController:getAdminUsers');
+        $subGroup->post('/users', '\App\Controllers\AdminController:createAdminUser');
+        
+    })->add(new JwtAuthMiddleware());
 });
 
 // Health check

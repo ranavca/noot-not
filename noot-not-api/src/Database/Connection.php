@@ -13,11 +13,11 @@ class Connection
     {
         if (self::$instance === null) {
             try {
-                $host = $_ENV['DB_HOST'];
-                $port = $_ENV['DB_PORT'];
-                $dbname = $_ENV['DB_NAME'];
-                $username = $_ENV['DB_USER'];
-                $password = $_ENV['DB_PASSWORD'];
+                $host = $_ENV['DB_HOST'] ?? 'localhost';
+                $port = $_ENV['DB_PORT'] ?? '3306';
+                $dbname = $_ENV['DB_NAME'] ?? 'noot_not';
+                $username = $_ENV['DB_USER'] ?? 'noot_user';
+                $password = $_ENV['DB_PASSWORD'] ?? 'noot_password';
 
                 $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
                 

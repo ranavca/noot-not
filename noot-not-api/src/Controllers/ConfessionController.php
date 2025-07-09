@@ -165,6 +165,7 @@ class ConfessionController
     {
         try {
             $id = $request->getAttribute('id');
+            $data = $request->getParsedBody();
             
             // Check if confession exists
             $confession = $this->confessionModel->findById($id);
@@ -174,12 +175,15 @@ class ConfessionController
                 ], 404);
             }
 
-            $success = $this->confessionModel->report($id);
+            $reason = $data['reason'] ?? 'other';
+            $description = $data['description'] ?? null;
+
+            $success = $this->confessionModel->createReport($id, $reason, $description);
             
             if (!$success) {
                 return $this->jsonResponse($response, [
-                    'error' => 'Error al registrar el reporte'
-                ], 500);
+                    'error' => 'Ya has reportado esta confesión o error al registrar el reporte'
+                ], 400);
             }
 
             return $this->jsonResponse($response, [

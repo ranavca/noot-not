@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import {
   ThemeProvider,
   CssBaseline,
@@ -14,11 +15,13 @@ import {
 import { Add, DataObject } from "@mui/icons-material";
 import { lightTheme, darkTheme } from "./theme";
 import { ThemeContextProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import { useThemeContext } from "./hooks/useThemeContext";
 import { useConfessions } from "./hooks/useConfessions";
 import { Header } from "./components/Header";
 import { ConfessionForm } from "./components/ConfessionForm";
 import { ConfessionCard } from "./components/ConfessionCard";
+import { AdminApp } from "./components/admin/AdminApp";
 import type { VoteType } from "./types";
 
 const AppContent: React.FC = () => {
@@ -308,10 +311,21 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <ThemeContextProvider>
-      <AppContent />
-    </ThemeContextProvider>
+    <AuthProvider>
+      <ThemeContextProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<MainApp />} />
+            <Route path="/admin/*" element={<AdminApp />} />
+          </Routes>
+        </Router>
+      </ThemeContextProvider>
+    </AuthProvider>
   );
+}
+
+function MainApp() {
+  return <AppContent />;
 }
 
 export default App;

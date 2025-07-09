@@ -122,7 +122,7 @@ trap cleanup EXIT INT TERM
 # Start API server in background
 echo "Starting API server on http://0.0.0.0:8000..."
 cd noot-not-api
-php -S 0.0.0.0:8000 -t public &
+php -S 0.0.0.0:8001 -t public &
 API_PID=$!
 cd ..
 

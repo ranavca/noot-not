@@ -9,11 +9,13 @@ $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
 
 try {
-    $host = $_ENV['DB_HOST'];
-    $port = $_ENV['DB_PORT'];
-    $dbname = $_ENV['DB_NAME'];
-    $username = $_ENV['DB_USER'];
-    $password = $_ENV['DB_PASSWORD'];
+    $host = $_ENV['DB_HOST'] ?? 'localhost';
+    $port = $_ENV['DB_PORT'] ?? '3306';
+    $dbname = $_ENV['DB_NAME'] ?? 'noot_not';
+    $username = $_ENV['DB_USER'] ?? 'noot_user';
+    $password = $_ENV['DB_PASSWORD'] ?? 'noot_password';
+
+    echo "Connecting to database: {$host}:{$port}/{$dbname} as {$username}\n";
 
     $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
     
@@ -55,6 +57,30 @@ try {
         $pdo->exec($index);
     }
     echo "✓ Created indexes\n";
+
+    // Run admin dashboard migration
+    $adminMigrationPath = __DIR__ . '/002_admin_dashboard.sql';
+    if (file_exists($adminMigrationPath)) {
+        $adminSql = file_get_contents($adminMigrationPath);
+        
+        // Split by semicolon and execute each statement
+        $statements = array_filter(array_map('trim', explode(';', $adminSql)));
+        
+        foreach ($statements as $statement) {
+            if (!empty($statement)) {
+                try {
+                    $pdo->exec($statement);
+                } catch (PDOException $e) {
+                    // Ignore errors for statements that might already exist
+                    if (strpos($e->getMessage(), 'already exists') === false && 
+                        strpos($e->getMessage(), 'Duplicate') === false) {
+                        echo "Warning: " . $e->getMessage() . "\n";
+                    }
+                }
+            }
+        }
+        echo "✓ Admin dashboard migration completed\n";
+    }
 
     echo "All migrations completed successfully!\n";
 

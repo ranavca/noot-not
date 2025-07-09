@@ -1,4 +1,4 @@
-import React, { useState, createContext } from "react";
+import { useState, createContext } from "react";
 import type { ReactNode } from "react";
 
 export interface ThemeContextType {
@@ -14,9 +14,7 @@ interface ThemeProviderProps {
   children: ReactNode;
 }
 
-export const ThemeContextProvider: React.FC<ThemeProviderProps> = ({
-  children,
-}) => {
+export const ThemeContextProvider = ({ children }: ThemeProviderProps) => {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("darkMode");
     return saved ? JSON.parse(saved) : false;
