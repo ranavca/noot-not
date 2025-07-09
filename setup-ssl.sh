@@ -107,6 +107,50 @@ ensure_docker_network() {
     fi
 }
 
+# Function to test domain accessibility
+test_domain_accessibility() {
+    print_status "Testing domain accessibility..."
+    
+    local test_failed=false
+    
+    for domain in "${DOMAINS[@]}"; do
+        print_status "Testing $domain..."
+        
+        # Try to resolve the domain
+        if ! nslookup "$domain" > /dev/null 2>&1; then
+            print_error "DNS resolution failed for $domain"
+            test_failed=true
+            continue
+        fi
+        
+        # Test if domain points to this server (basic check)
+        local domain_ip=$(dig +short "$domain" | tail -n1)
+        if [[ -z "$domain_ip" ]]; then
+            print_warning "Could not resolve IP for $domain"
+            test_failed=true
+        else
+            print_success "$domain resolves to $domain_ip"
+        fi
+    done
+    
+    if [[ "$test_failed" == "true" ]]; then
+        print_error "Some domains failed accessibility tests."
+        print_status "Please ensure:"
+        echo "  1. DNS records point to this server's IP"
+        echo "  2. Domains are properly configured"
+        echo "  3. Firewall allows HTTP (port 80) traffic"
+        echo ""
+        read -p "Do you want to continue anyway? (y/N): " -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            print_status "SSL setup cancelled."
+            exit 0
+        fi
+    else
+        print_success "All domains passed accessibility tests."
+    fi
+}
+
 # Function to create temporary nginx configuration for ACME challenge
 create_temp_nginx_config() {
     print_status "Creating temporary nginx configuration for ACME challenge..."
@@ -117,15 +161,17 @@ server {
     listen 80;
     server_name nootnot.rocks www.nootnot.rocks api.nootnot.rocks;
     
-    # ACME challenge location
+    # ACME challenge location - serve files directly without redirect
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
         try_files $uri =404;
+        allow all;
     }
     
-    # Redirect all other requests to HTTPS (will be enabled after SSL setup)
+    # For all other requests, return a simple response during SSL setup
     location / {
-        return 301 https://$server_name$request_uri;
+        return 200 'SSL certificate generation in progress. Please wait...';
+        add_header Content-Type text/plain;
     }
 }
 EOF
@@ -360,6 +406,33 @@ obtain_certificates() {
     # Wait for nginx to be ready
     sleep 15
     
+    # Test nginx accessibility
+    print_status "Testing nginx accessibility..."
+    for domain in "${DOMAINS[@]}"; do
+        if curl -s -f "http://$domain/" > /dev/null; then
+            print_success "$domain is accessible via HTTP"
+        else
+            print_warning "$domain may not be accessible yet"
+        fi
+    done
+    
+    # Create a test challenge file to verify webroot accessibility
+    print_status "Testing ACME challenge file accessibility..."
+    mkdir -p "$WEBROOT_PATH/.well-known/acme-challenge"
+    echo "test-challenge-file" > "$WEBROOT_PATH/.well-known/acme-challenge/test-file"
+    
+    sleep 5
+    
+    for domain in "${DOMAINS[@]}"; do
+        if curl -s "http://$domain/.well-known/acme-challenge/test-file" | grep -q "test-challenge-file"; then
+            print_success "$domain can serve challenge files"
+        else
+            print_error "$domain cannot serve challenge files - this will cause certificate generation to fail"
+        fi
+    done
+    
+    rm -f "$WEBROOT_PATH/.well-known/acme-challenge/test-file"
+    
     # Obtain certificate for main domain (with www subdomain)
     print_status "Obtaining certificate for nootnot.rocks and www.nootnot.rocks..."
     $compose_cmd -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
@@ -527,6 +600,7 @@ main() {
     check_dependencies
     create_directories
     ensure_docker_network
+    test_domain_accessibility
     backup_nginx_config
     create_certbot_compose
     obtain_certificates
