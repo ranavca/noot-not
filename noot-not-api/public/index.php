@@ -9,8 +9,13 @@ use App\Middleware\JsonBodyParserMiddleware;
 use App\Database\Connection;
 
 // Load environment variables
-$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+try {
+    $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+} catch (Exception $e) {
+    // In production, environment variables should be set by Docker
+    // This fallback allows the app to work without a .env file
+}
 
 // Create Slim app
 $app = AppFactory::create();
