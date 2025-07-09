@@ -64,7 +64,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleVote = async (id: string, voteType: VoteType) => {
+  const handleVote = async (id: number, voteType: VoteType) => {
     const success = await voteConfession(id, voteType);
 
     if (!success) {
@@ -76,7 +76,7 @@ const AppContent: React.FC = () => {
     }
   };
 
-  const handleReport = async (id: string) => {
+  const handleReport = async (id: number) => {
     const success = await reportConfession(id);
 
     if (success) {
