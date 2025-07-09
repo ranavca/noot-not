@@ -363,7 +363,7 @@ obtain_certificates() {
     # Obtain certificate for main domain (with www subdomain)
     print_status "Obtaining certificate for nootnot.rocks and www.nootnot.rocks..."
     $compose_cmd -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
-        certbot certonly \
+        certonly \
         --webroot \
         --webroot-path=/var/www/certbot \
         --email "$EMAIL" \
@@ -376,7 +376,7 @@ obtain_certificates() {
     # Obtain certificate for API subdomain
     print_status "Obtaining certificate for api.nootnot.rocks..."
     $compose_cmd -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
-        certbot certonly \
+        certonly \
         --webroot \
         --webroot-path=/var/www/certbot \
         --email "$EMAIL" \
@@ -429,7 +429,7 @@ echo "Starting SSL certificate renewal..."
 
 # Renew certificates
 docker-compose -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
-    certbot renew --quiet
+    renew --quiet
 
 # Reload nginx if certificates were renewed
 if [ $? -eq 0 ]; then
@@ -491,7 +491,7 @@ show_ssl_status() {
     echo ""
     
     docker-compose -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
-        certbot certificates
+        certificates
 }
 
 # Main function
@@ -552,7 +552,7 @@ main() {
     echo ""
     print_status "Next steps:"
     echo "1. Verify that your domains are accessible via HTTPS"
-    echo "2. Check certificate status with: docker-compose -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot certbot certificates"
+    echo "2. Check certificate status with: docker-compose -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot certificates"
     echo "3. Test automatic renewal with: ./renew-ssl.sh"
     echo ""
     print_status "Automatic renewal is set up to run daily at 3 AM."
