@@ -1,6 +1,7 @@
 # SSL Setup Deployment Guide
 
 ## Overview
+
 This guide explains how to deploy and run the SSL setup script on your Linux server.
 
 ## Prerequisites on Linux Server
@@ -95,6 +96,7 @@ chmod +x setup-ssl.sh
 ### 7. Follow the Interactive Prompts
 
 The script will ask for:
+
 - **Email address** for Let's Encrypt notifications
 - **Confirmation** to proceed with domain configuration
 
@@ -120,12 +122,14 @@ curl -s "https://api.ssllabs.com/api/v3/analyze?host=nootnot.rocks" | jq
 ### Common Issues
 
 1. **DNS not propagated**
+
    ```bash
    # Wait for DNS propagation (can take up to 48 hours)
    # Verify with: dig nootnot.rocks
    ```
 
 2. **Firewall blocking ports**
+
    ```bash
    # Check if ports are open
    sudo netstat -tlnp | grep :80
@@ -133,6 +137,7 @@ curl -s "https://api.ssllabs.com/api/v3/analyze?host=nootnot.rocks" | jq
    ```
 
 3. **Docker permission issues**
+
    ```bash
    # Add user to docker group
    sudo usermod -aG docker $USER
@@ -140,10 +145,11 @@ curl -s "https://api.ssllabs.com/api/v3/analyze?host=nootnot.rocks" | jq
    ```
 
 4. **Certificate generation fails**
+
    ```bash
    # Check nginx logs
    docker-compose logs nginx
-   
+
    # Check certbot logs
    docker-compose -f docker-compose.yml -f docker-compose.ssl.yml logs certbot
    ```

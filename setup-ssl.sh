@@ -87,6 +87,26 @@ create_directories() {
     print_success "Directories created."
 }
 
+# Function to ensure Docker network exists
+ensure_docker_network() {
+    print_status "Ensuring Docker network exists..."
+    
+    # Determine docker command with sudo if needed
+    local docker_cmd="docker"
+    if [[ -n "${USE_SUDO:-}" ]]; then
+        docker_cmd="sudo docker"
+    fi
+    
+    # Check if network exists, create if not
+    if ! $docker_cmd network ls | grep -q "noot-not-network"; then
+        print_status "Creating Docker network: noot-not-network"
+        $docker_cmd network create noot-not-network
+        print_success "Docker network created."
+    else
+        print_success "Docker network already exists."
+    fi
+}
+
 # Function to create temporary nginx configuration for ACME challenge
 create_temp_nginx_config() {
     print_status "Creating temporary nginx configuration for ACME challenge..."
@@ -303,11 +323,10 @@ services:
 
 volumes:
   certbot-certs:
-    external: false
 
 networks:
   noot-not-network:
-    external: true
+    driver: bridge
 EOF
     
     print_success "Certbot docker-compose configuration created."
@@ -507,6 +526,7 @@ main() {
     check_root
     check_dependencies
     create_directories
+    ensure_docker_network
     backup_nginx_config
     create_certbot_compose
     obtain_certificates
