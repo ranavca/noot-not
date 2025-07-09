@@ -35,8 +35,27 @@ $app->group('/api', function ($group) {
 
 // Health check
 $app->get('/health', function ($request, $response) {
-    $response->getBody()->write(json_encode(['status' => 'ok']));
-    return $response->withHeader('Content-Type', 'application/json');
+    $health = ['status' => 'ok', 'timestamp' => date('c')];
+    
+    try {
+        // Check database connection
+        $db = \App\Database\Connection::getInstance();
+        $stmt = $db->query('SELECT 1');
+        if ($stmt) {
+            $health['database'] = 'connected';
+        } else {
+            $health['database'] = 'error';
+            $health['status'] = 'degraded';
+        }
+    } catch (Exception $e) {
+        $health['database'] = 'error';
+        $health['database_error'] = $e->getMessage();
+        $health['status'] = 'degraded';
+    }
+    
+    $statusCode = ($health['status'] === 'ok') ? 200 : 503;
+    $response->getBody()->write(json_encode($health));
+    return $response->withHeader('Content-Type', 'application/json')->withStatus($statusCode);
 });
 
 $app->run();

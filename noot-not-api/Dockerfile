@@ -36,8 +36,8 @@ RUN mkdir -p /var/www/public/images/confessions && \
     chown -R www-data:www-data /var/www && \
     chmod -R 755 /var/www/public
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+# Health check - check the correct endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost/health || exit 1
 
 EXPOSE 80

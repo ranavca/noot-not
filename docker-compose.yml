@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # PHP API Service
@@ -25,7 +25,7 @@ services:
     networks:
       - noot-not-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -68,7 +68,17 @@ services:
     networks:
       - noot-not-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_password"]
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "root",
+          "-proot_password",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
