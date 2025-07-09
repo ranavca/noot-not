@@ -33,13 +33,14 @@ services:
 
   # React Frontend Service
   frontend:
-    build: ./noot-not-front
+    build:
+      context: ./noot-not-front
+      args:
+        VITE_API_BASE_URL: https://api.nootnot.rocks/api
     container_name: noot-not-frontend
     restart: unless-stopped
     ports:
       - "3000:80"
-    environment:
-      - VITE_API_BASE_URL=http://localhost:8000/api
     depends_on:
       - api
     networks:

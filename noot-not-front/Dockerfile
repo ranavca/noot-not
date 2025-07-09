@@ -7,6 +7,10 @@ WORKDIR /app
 # Install curl for health checks
 RUN apk add --no-cache curl
 
+# Accept build argument for API URL
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 # Copy package files first for better caching
 COPY package*.json ./
 

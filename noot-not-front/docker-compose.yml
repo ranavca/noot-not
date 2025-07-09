@@ -2,13 +2,14 @@ version: "3.8"
 
 services:
   frontend:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_API_BASE_URL: https://api.nootnot.rocks/api
     container_name: noot-not-frontend
     restart: unless-stopped
     ports:
       - "3000:80"
-    environment:
-      - VITE_API_BASE_URL=https://api.nootnot.rocks/api
     networks:
       - noot-not-network
 
