@@ -317,7 +317,7 @@ services:
     volumes:
       - certbot-certs:/etc/letsencrypt
       - ./nginx/webroot:/var/www/certbot
-    command: certbot --version
+    command: ["--version"]
     networks:
       - noot-not-network
 
