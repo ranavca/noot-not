@@ -57,6 +57,23 @@ check_dependencies() {
         fi
     done
     
+    # Check Docker permissions
+    if ! docker ps &> /dev/null; then
+        print_warning "Docker permission issue detected. You may need to:"
+        print_status "1. Add user to docker group: sudo usermod -aG docker \$USER"
+        print_status "2. Logout and login again"
+        print_status "3. Or run with sudo (not recommended for security)"
+        
+        # Try with sudo as fallback
+        if sudo docker ps &> /dev/null; then
+            print_warning "Will use sudo for Docker commands"
+            export USE_SUDO="sudo"
+        else
+            print_error "Docker is not accessible even with sudo"
+            exit 1
+        fi
+    fi
+    
     print_success "All dependencies are available."
 }
 
@@ -268,28 +285,29 @@ create_certbot_compose() {
     print_status "Creating docker-compose override for certbot..."
     
     cat > "docker-compose.ssl.yml" << 'EOF'
-version: '3.8'
-
 services:
   nginx:
     volumes:
       - ./nginx/webroot:/var/www/certbot:ro
       - certbot-certs:/etc/letsencrypt:ro
-      - certbot-www:/var/www/certbot:ro
 
   certbot:
     image: certbot/certbot:latest
     container_name: certbot
     volumes:
       - certbot-certs:/etc/letsencrypt
-      - certbot-www:/var/www/certbot
+      - ./nginx/webroot:/var/www/certbot
     command: certbot --version
-    profiles:
-      - tools
+    networks:
+      - noot-not-network
 
 volumes:
   certbot-certs:
-  certbot-www:
+    external: false
+
+networks:
+  noot-not-network:
+    external: true
 EOF
     
     print_success "Certbot docker-compose configuration created."
@@ -299,17 +317,33 @@ EOF
 obtain_certificates() {
     print_status "Starting certificate generation process..."
     
+    # Determine docker compose command
+    local compose_cmd="docker-compose"
+    if command -v "docker" &> /dev/null && docker compose version &> /dev/null 2>&1; then
+        compose_cmd="docker compose"
+    fi
+    
+    # Add sudo prefix if needed
+    if [[ -n "${USE_SUDO:-}" ]]; then
+        compose_cmd="sudo $compose_cmd"
+    fi
+    
     # Start nginx with temporary configuration
     print_status "Starting nginx for ACME challenge..."
     create_temp_nginx_config
-    docker-compose -f docker-compose.yml -f docker-compose.ssl.yml up -d nginx
+    
+    # Stop any existing containers first
+    $compose_cmd -f docker-compose.yml -f docker-compose.ssl.yml down || true
+    
+    # Start nginx service
+    $compose_cmd -f docker-compose.yml -f docker-compose.ssl.yml up -d nginx
     
     # Wait for nginx to be ready
-    sleep 10
+    sleep 15
     
     # Obtain certificate for main domain (with www subdomain)
     print_status "Obtaining certificate for nootnot.rocks and www.nootnot.rocks..."
-    docker-compose -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
+    $compose_cmd -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
         certbot certonly \
         --webroot \
         --webroot-path=/var/www/certbot \
@@ -322,7 +356,7 @@ obtain_certificates() {
     
     # Obtain certificate for API subdomain
     print_status "Obtaining certificate for api.nootnot.rocks..."
-    docker-compose -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
+    $compose_cmd -f docker-compose.yml -f docker-compose.ssl.yml run --rm certbot \
         certbot certonly \
         --webroot \
         --webroot-path=/var/www/certbot \

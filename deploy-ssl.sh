@@ -6,9 +6,9 @@
 set -e
 
 # Configuration - UPDATE THESE VALUES
-SERVER_USER="your-username"
-SERVER_IP="your-server-ip"
-SERVER_PATH="/home/your-username/noot-not"
+SERVER_USER="your-username"  # Replace with your VPS username
+SERVER_IP="your-server-ip"   # Replace with your VPS IP address
+SERVER_PATH="/home/your-username/noot-not"  # Path on server
 LOCAL_PROJECT_PATH="/Users/raymond/Desktop/noot-not"
 
 # Colors
