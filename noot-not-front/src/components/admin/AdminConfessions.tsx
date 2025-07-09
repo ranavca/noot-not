@@ -54,7 +54,10 @@ function ConfessionDialog({
   onSave,
   isCreating,
 }: ConfessionDialogProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    content: string;
+    moderation_status: "pending" | "approved" | "rejected";
+  }>({
     content: "",
     moderation_status: "pending",
   });

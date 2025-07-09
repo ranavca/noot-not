@@ -47,6 +47,8 @@ export interface Report {
   resolved_by?: number;
   resolved_by_username?: string;
   resolved_at?: string;
+  reviewed_by?: string;
+  reviewed_at?: string;
   admin_notes?: string;
   created_at: string;
   content: string;

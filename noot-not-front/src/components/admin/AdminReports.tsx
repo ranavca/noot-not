@@ -54,9 +54,9 @@ export function AdminReports() {
     loadReports();
   }, [loadReports]);
 
-  const handleResolveReport = async (reportId: number) => {
+  const handleResolveReport = async (reportId: number, action: string = "dismiss") => {
     try {
-      await adminService.resolveReport(reportId);
+      await adminService.resolveReport(reportId, action);
       await loadReports();
     } catch (err: unknown) {
       const errorMessage =
