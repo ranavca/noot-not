@@ -38,6 +38,11 @@ $app->group('/api', function ($group) {
     $group->post('/confessions/{id}/update-images', '\App\Controllers\ConfessionController:updateImages');
 });
 
+// Handle preflight OPTIONS requests
+$app->options('/{routes:.+}', function ($request, $response) {
+    return $response;
+});
+
 // Health check
 $app->get('/health', function ($request, $response) {
     $health = ['status' => 'ok', 'timestamp' => date('c')];
