@@ -240,26 +240,47 @@ class ImageGeneratorService:
         return lines
 
     def create_gradient_background(self) -> Image.Image:
-        """Create a gradient background image"""
-        image = Image.new('RGB', (self.image_width, self.image_height))
+        """Create a background image from assets/backgrounds/bg.png"""
+        bg_path = os.path.join(self.backgrounds_dir, 'bg.png')
         
-        for y in range(self.image_height):
-            ratio = y / self.image_height
+        try:
+            # Load the background image
+            background = Image.open(bg_path)
             
-            # Purple to blue gradient
-            r = int(107 + (67 - 107) * ratio)  # 107 -> 67
-            g = int(114 + (56 - 114) * ratio)  # 114 -> 56
-            b = int(224 + (184 - 224) * ratio)  # 224 -> 184
+            # Convert to RGB if necessary (in case it's RGBA or other format)
+            if background.mode != 'RGB':
+                background = background.convert('RGB')
             
-            for x in range(self.image_width):
-                image.putpixel((x, y), (r, g, b))
-        
-        return image
+            # Resize to match our target dimensions if needed
+            if background.size != (self.image_width, self.image_height):
+                background = background.resize((self.image_width, self.image_height), Image.Resampling.LANCZOS)
+            
+            return background
+            
+        except Exception as e:
+            print(f"Error loading background image from {bg_path}: {e}")
+            print("Falling back to gradient background")
+            
+            # Fallback to gradient if image loading fails
+            image = Image.new('RGB', (self.image_width, self.image_height))
+            
+            for y in range(self.image_height):
+                ratio = y / self.image_height
+                
+                # Purple to blue gradient
+                r = int(107 + (67 - 107) * ratio)  # 107 -> 67
+                g = int(114 + (56 - 114) * ratio)  # 114 -> 56
+                b = int(224 + (184 - 224) * ratio)  # 224 -> 184
+                
+                for x in range(self.image_width):
+                    image.putpixel((x, y), (r, g, b))
+            
+            return image
 
     def add_text_with_effects(self, draw: ImageDraw.Draw, text: str, x: int, y: int, 
-                            font: ImageFont.ImageFont, text_color: Tuple[int, int, int] = (255, 255, 255),
-                            shadow_color: Tuple[int, int, int] = (50, 50, 50),
-                            outline_color: Tuple[int, int, int] = (0, 0, 0)):
+                            font: ImageFont.ImageFont, text_color: Tuple[int, int, int] = (0, 0, 0),
+                            shadow_color: Tuple[int, int, int] = (150, 150, 150),
+                            outline_color: Tuple[int, int, int] = (128, 128, 128)):
         """Add text with shadow and outline effects"""
         
         # Add shadow (offset by 4 pixels)
@@ -275,9 +296,9 @@ class ImageGeneratorService:
         draw.text((x, y), text, font=font, fill=text_color)
 
     def add_mixed_text_with_effects(self, draw: ImageDraw.Draw, text: str, x: int, y: int,
-                                  text_color: Tuple[int, int, int] = (255, 255, 255),
-                                  shadow_color: Tuple[int, int, int] = (50, 50, 50),
-                                  outline_color: Tuple[int, int, int] = (0, 0, 0)):
+                                  text_color: Tuple[int, int, int] = (0, 0, 0),
+                                  shadow_color: Tuple[int, int, int] = (150, 150, 150),
+                                  outline_color: Tuple[int, int, int] = (128, 128, 128)):
         """Add text that may contain emojis with shadow and outline effects"""
         segments = self.split_text_and_emojis(text)
         current_x = x
@@ -294,7 +315,7 @@ class ImageGeneratorService:
                         # to preserve readability
                         
                         # Light shadow for emoji
-                        draw.text((current_x + 2, y + 2), segment, font=self.emoji_font, fill=(100, 100, 100))
+                        draw.text((current_x + 2, y + 2), segment, font=self.emoji_font, fill=(200, 200, 200))
                         
                         # Main emoji (slightly larger size for better visibility)
                         draw.text((current_x, y), segment, font=self.emoji_font, fill=text_color)

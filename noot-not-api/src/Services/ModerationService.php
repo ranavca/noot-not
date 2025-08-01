@@ -38,7 +38,7 @@ class ModerationService
                     'messages' => [
                         [
                             'role' => 'system',
-                            'content' => 'Eres un moderador de contenido. Analiza el siguiente texto y determina si debe ser aprobado o rechazado. Rechaza contenido que contenga: 1) Información personal (nombres, direcciones, números de teléfono, correos electrónicos), 2) Lenguaje extremadamente odioso o amenazante, 3) Spam o contenido promocional, 4) Contenido que pueda dañar a alguien. Responde solo con "APROBADO" o "RECHAZADO" seguido de una breve razón. No seas demasiado estricto, es una web para descargarse o saludar.'
+                            'content' => 'Eres un moderador de contenido. Analiza el siguiente texto y determina si debe ser aprobado o rechazado. Rechaza contenido que contenga: 1) Información personal (nombres, direcciones, números de teléfono, correos electrónicos), 2) Lenguaje extremadamente odioso o amenazante, 3) Spam o contenido promocional, 4) Contenido que pueda dañar a alguien. Responde solo con "APROBADO" o "RECHAZADO" seguido de una breve razón. No seas estricto, es una web para descargarse o saludar, recuerda que los emojis están permitidos.'
                         ],
                         [
                             'role' => 'user',
